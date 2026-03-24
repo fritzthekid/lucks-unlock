@@ -4,6 +4,7 @@ Runtime dependencies (Python packages)
 ---------------------------------------
 - Flask (https://flask.palletsprojects.com/), BSD 3-Clause License
 - python-pam (https://github.com/FirefighterBlu3/python-pam/), MIT License 
+- python-six (https://github.com/benjaminp/six/), MIT License 
 - uWSGI (https://uwsgi-docs.readthedocs.io/), GPL 2.0 License with linking exception¹
 
 ¹ uWSGI is used as a standalone WSGI application server (separate process). It is not
