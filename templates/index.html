@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>merkur – LUKS</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+</head>
+<body>
+
+{% if logged_in %}
+<nav>
+  <h1>&#128274; merkur – LUKS Manager</h1>
+  <div style="display:flex;align-items:center;gap:1em">
+    <span style="font-size:.85em;opacity:.8">{{ username }}</span>
+    <form method="post" action="/logout"><button type="submit">Abmelden</button></form>
+  </div>
+</nav>
+{% endif %}
+
+<div class="wrap">
+
+{% if not logged_in %}
+<!-- LOGIN -->
+<div class="card" style="max-width:360px;margin:3em auto">
+  <h2>Anmelden</h2>
+  {% if error %}<div class="msg err">{{ error }}</div>{% endif %}
+  <form method="post" action="/login">
+    <label>Benutzer</label><input type="text" name="username" autofocus>
+    <label>Passwort</label><input type="password" name="password">
+    <button class="btn btn-login" type="submit">Anmelden</button>
+  </form>
+</div>
+
+{% else %}
+<!-- TABS -->
+<div class="tabs">
+  <a href="/"                   class="tab {% if tab=='home'   %}act{% endif %}">&#127968; Übersicht</a>
+  <a href="/browse/mnt/backup"  class="tab {% if tab=='backup' %}act{% endif %}">&#128193; backup</a>
+  <a href="/browse/mnt/nas"     class="tab {% if tab=='nas'    %}act{% endif %}">&#128193; nas</a>
+</div>
+
+{% if tab == 'home' %}
+<!-- ÜBERSICHT -->
+<div class="grid2">
+{% for name, d in devices.items() %}
+<div class="card">
+  <h2>{{ name }}
+    <span class="badge {{ 'open' if d.mounted else 'closed' }}" style="float:right">
+      {{ 'Eingehängt' if d.mounted else 'Gesperrt' }}
+    </span>
+  </h2>
+  {% if d.mounted and d.disk %}
+    <div class="row"><span>Gesamt</span><strong>{{ d.disk.total }}</strong></div>
+    <div class="row"><span>Belegt</span><strong>{{ d.disk.used }}</strong></div>
+    <div class="row"><span>Frei</span><strong>{{ d.disk.free }}</strong></div>
+    <div class="bar-wrap">
+      <div class="bar {% if d.disk.pct>90 %}hi{% elif d.disk.pct>75 %}md{% endif %}"
+           style="width:{{ d.disk.pct }}%"></div>
+    </div>
+    <div style="font-size:.8em;text-align:right;color:#aaa">{{ d.disk.pct }}% belegt</div>
+    {% if d.smart %}
+    <div class="row" style="margin-top:.6em">
+      <span>SMART-Status</span>
+      <span class="badge {% if d.smart.health=='OK' %}open{% else %}closed{% endif %}">
+        {{ d.smart.health }}
+      </span>
+    </div>
+    {% if d.smart.temp is not none %}
+    <div class="row"><span>Temperatur</span><strong>{{ d.smart.temp }} °C</strong></div>
+    {% endif %}
+    {% endif %}
+  {% else %}
+    <p style="color:#aaa;font-size:.88em">Gesperrt – keine Daten verfügbar.</p>
+  {% endif %}
+</div>
+{% endfor %}
+</div>
+
+{% if not all_mounted %}
+<div class="card">
+  <h2>&#128275; Entsperren</h2>
+  {% if error %}<div class="msg err">{{ error }}</div>{% endif %}
+  {% if success %}<div class="msg ok">{{ success }}</div>{% endif %}
+  <form method="post" action="/unlock">
+    <label>LUKS-Passphrase</label>
+    <input type="password" name="passphrase" autofocus>
+    <button class="btn btn-unlock" type="submit">Beide Laufwerke entsperren &amp; einhängen</button>
+  </form>
+</div>
+{% endif %}
+
+{% if any_mounted %}
+<div class="card">
+  {% if error %}<div class="msg err">{{ error }}</div>{% endif %}
+  {% if success %}<div class="msg ok">{{ success }}</div>{% endif %}
+  <form method="post" action="/lock">
+    <button class="btn btn-lock" type="submit">&#128274; Alle Laufwerke sperren</button>
+  </form>
+</div>
+{% endif %}
+
+{% if log_entries %}
+<div class="card">
+  <h2>Protokoll</h2>
+  <div class="logbox" id="logbox">
+    {% for e in log_entries %}
+    <div{% if e.level=='error' %} class="err"{% endif %}>
+      <span class="ts">{{ e.ts }}</span> {{ e.msg }}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+<script>var b=document.getElementById('logbox');if(b)b.scrollTop=b.scrollHeight;</script>
+{% endif %}
+
+{% else %}
+<!-- DATEI-BROWSER -->
+<div class="card">
+  {% if not mounted %}
+  <div class="msg err">Dieses Laufwerk ist nicht eingehängt.</div>
+  {% else %}
+  <div class="bread">
+    {% for c in breadcrumbs %}
+      {% if not loop.last %}<a href="/browse/{{ c.path }}">{{ c.name }}</a> / {% else %}<strong>{{ c.name }}</strong>{% endif %}
+    {% endfor %}
+  </div>
+  <table>
+    <tr><th>Name</th><th>Größe</th><th>Geändert</th></tr>
+    {% if parent %}
+    <tr><td colspan="3"><a href="/browse/{{ parent }}">&#11014; übergeordnetes Verzeichnis</a></td></tr>
+    {% endif %}
+    {% for e in entries %}
+    <tr>
+      <td>
+        {% if e.is_dir %}
+          <a href="/browse/{{ e.path[1:] }}"><span class="ico">&#128193;</span>{{ e.name }}/</a>
+        {% else %}
+          <span class="ico">&#128196;</span>{{ e.name }}
+        {% endif %}
+      </td>
+      <td style="color:#888">{{ e.size }}</td>
+      <td style="color:#888">{{ e.mtime }}</td>
+    </tr>
+    {% endfor %}
+    {% if not entries %}
+    <tr><td colspan="3" style="color:#ccc;text-align:center;padding:1em">
+      Verzeichnis leer
+    </td></tr>
+    {% endif %}
+  </table>
+  {% endif %}
+</div>
+{% endif %}
+{% endif %}
+
+</div>
+</body>
+</html>

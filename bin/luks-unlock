@@ -1,0 +1,7 @@
+#!/bin/bash
+read -s -p "Passphrase: " PASS
+echo
+echo "$PASS" | sudo cryptsetup open /dev/sda2 backup
+echo "$PASS" | sudo cryptsetup open /dev/sdb2 nas
+sudo mount -a
+lsblk
