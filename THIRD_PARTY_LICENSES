@@ -1,0 +1,24 @@
+Includes material from:
+
+Runtime dependencies (Python packages)
+---------------------------------------
+- pandas (https://pandas.pydata.org/), BSD 3-Clause License
+- NumPy (https://numpy.org/), BSD 3-Clause License
+- Matplotlib (https://matplotlib.org/), Matplotlib License (BSD-compatible, PSF-style)
+- seaborn (https://seaborn.pydata.org/), BSD 3-Clause License
+- Flask (https://flask.palletsprojects.com/), BSD 3-Clause License
+- Flask-CORS (https://flask-cors.readthedocs.io/), MIT License
+- Requests (https://requests.readthedocs.io/), Apache 2.0 License
+- uWSGI (https://uwsgi-docs.readthedocs.io/), GPL 2.0 License with linking exception¹
+
+¹ uWSGI is used as a standalone WSGI application server (separate process). It is not
+  statically or dynamically linked with smard-utils application code. The GPL 2.0 with
+  linking exception therefore does not affect the BSD 3-Clause license of this project.
+  See https://uwsgi-docs.readthedocs.io/en/latest/License.html
+
+Data sources
+-------------
+- SMARD Marktstammdatenregister (https://www.smard.de/), Bundesnetzagentur
+  Energy generation and load data, licensed under
+  Datenlizenz Deutschland – Namensnennung – Version 2.0 (DL-DE->BY-2.0)
+  https://www.govdata.de/dl-de/by-2-0
