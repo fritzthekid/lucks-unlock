@@ -1,0 +1,21 @@
+[Unit]
+Description=LUKS Unlock Web Interface
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/mnt/ssdusr/luks-unlock
+ExecStart=/mnt/ssdusr/luks-unlock/.venv/bin/uwsgi \
+    --http 0.0.0.0:5000 \
+    --wsgi-file /mnt/ssdusr/luks-unlock/luks_unlock.py \
+    --callable app \
+    --processes 1 \
+    --threads 2 \
+    --master
+KillMode=mixed
+TimeoutStopSec=5
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

@@ -4,7 +4,7 @@ LUKS Unlock Web Interface mit Datei-Browser und Statusanzeige
 Läuft auf /mnt/ssdusr/luks-unlock/
 """
 
-from flask import Flask, request, session, redirect, url_for, render_template, abort
+from flask import Flask, request, session, redirect, url_for, render_template, abort, send_file
 import pam
 import subprocess
 import os
@@ -245,6 +245,15 @@ def browse(subpath):
     return render(tab=tab, devices={},
                   mounted=mnt, entries=entries,
                   breadcrumbs=crumbs, parent=parent)
+
+@app.route('/download/<path:subpath>')
+def download(subpath):
+    if not logged_in(): return redirect(url_for('index'))
+    full = '/' + subpath
+    safe = safe_path(full)
+    if not safe or not os.path.isfile(safe):
+        abort(403)
+    return send_file(safe, as_attachment=True)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)

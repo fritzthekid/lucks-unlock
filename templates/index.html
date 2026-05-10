@@ -127,9 +127,9 @@
     {% endfor %}
   </div>
   <table>
-    <tr><th>Name</th><th>Größe</th><th>Geändert</th></tr>
+    <tr><th>Name</th><th>Größe</th><th>Geändert</th><th></th></tr>
     {% if parent %}
-    <tr><td colspan="3"><a href="/browse/{{ parent }}">&#11014; übergeordnetes Verzeichnis</a></td></tr>
+    <tr><td colspan="4"><a href="/browse/{{ parent }}">&#11014; übergeordnetes Verzeichnis</a></td></tr>
     {% endif %}
     {% for e in entries %}
     <tr>
@@ -142,10 +142,11 @@
       </td>
       <td style="color:#888">{{ e.size }}</td>
       <td style="color:#888">{{ e.mtime }}</td>
+      <td>{% if not e.is_dir %}<a href="/download/{{ e.path[1:] }}" title="Herunterladen">&#11015;</a>{% endif %}</td>
     </tr>
     {% endfor %}
     {% if not entries %}
-    <tr><td colspan="3" style="color:#ccc;text-align:center;padding:1em">
+    <tr><td colspan="4" style="color:#ccc;text-align:center;padding:1em">
       Verzeichnis leer
     </td></tr>
     {% endif %}
